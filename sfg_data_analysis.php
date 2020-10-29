@@ -54,6 +54,7 @@ $complete_file = str_replace(".csv", "_complete.csv", $sfg_uniq);
 $get_matches = "awk -F'\t' 'FILENAME==\"" . $sfg_file . "\"{A[$1]=$1} FILENAME==\"" . $st_file . "\"{if(A[$1]==$1){print}}' $sfg_file $st_file > final_files/" . $complete_file;
 exec($get_matches);
 
+//counting occurrences of ST codes in SFG file
 echo "\nFinalizing files and counting source codes\n";
 $complete_file_name = "final_files/" . $complete_file;
 $read_file = fopen($complete_file_name, "r");
