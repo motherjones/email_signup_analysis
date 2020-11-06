@@ -54,7 +54,6 @@ $complete_file = str_replace(".csv", "_complete.csv", $sfg_uniq);
 $get_matches = "awk -F'\t' 'FILENAME==\"" . $sfg_file . "\"{A[$1]=$1} FILENAME==\"" . $st_file . "\"{if(A[$1]==$1){print}}' $sfg_file $st_file > final_files/" . $complete_file;
 exec($get_matches);
 
-//counting occurrences of ST codes in SFG file
 echo "\nFinalizing files and counting source codes\n";
 $complete_file_name = "final_files/" . $complete_file;
 $read_file = fopen($complete_file_name, "r");
@@ -70,10 +69,19 @@ while($row = fgetcsv($read_file, 0, "\t")) {
 		$counter_arr[$row[1]] = 1;
 	}
 }
+//get non matching source codes to include
+$non_match = fopen($st_file, "r");
+while($line = fgetcsv($non_match, 0, "\t")) {
+	if(!array_key_exists($line[1], $counter_arr)) {
+		$counter_arr[$line[1]] = 0;
+	}
+}
 
 foreach($counter_arr as $line => $value) {
 	$temp_arr[0] = $line;
 	$temp_arr[1] = $value;
 	fputcsv($final_file, $temp_arr);
 }
+fclose($read_file);
+fclose($final_file);
 ?>
