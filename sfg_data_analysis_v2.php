@@ -62,27 +62,45 @@ exec($get_matches);
 echo "\nFinalizing files and counting source codes\n";
 //open file with all sources
 $st_file_all_sources = fopen($st_file, "r");
+$st_count_arr = array();
 $counter_arr = array();
-
-while($row = fgetcsv($st_file_all_sources, 0, "\t")) {
-	$counter_arr[$row[1]] = 0;
-}
-//matching sources
 $complete_file_name = "final_files/" . $complete_file;
 $read_file = fopen($complete_file_name, "r");
 $rename_final = str_replace(".csv", "_final.csv", $complete_file);
 $final_file_name = "final_files/" . $rename_final;
 $final_file = fopen($final_file_name, "w+");
 
-while($line = fgetcsv($read_file, 0, "\t")) {
-	if(array_key_exists($line[1], $counter_arr)) {
-		$counter_arr[$line[1]] += 1;
+while($row = fgetcsv($st_file_all_sources, 0, "\t")) {
+	$counter_arr[$row[1]] = 0;
+}
+
+$st_all_sources = fopen($st_file, "r");
+
+while($read = fgetcsv($st_all_sources, 0, "\t")) {
+	if(array_key_exists($read[1], $st_count_arr)) {
+		$st_count_arr[$read[1]][0] += 1;
+	}
+	else {
+		$st_count_arr[$read[1]][0] = 1;
 	}
 }
 
-foreach($counter_arr as $line => $value) {
+while($line = fgetcsv($read_file, 0, "\t")) {
+	if(array_key_exists($line[1], $st_count_arr)) {
+		$st_count_arr[$line[1]][1] += 1;
+	}
+}
+
+$headers[0] = "Source";
+$headers[1] = "Totals by Source in SailThru";
+$headers[2] = "Total Matches in SFG";
+
+fputcsv($final_file, $headers);
+
+foreach($st_count_arr as $line => $value) {
 	$temp_arr[0] = $line;
-	$temp_arr[1] = $value;
+	$temp_arr[1] = $value[0];
+	$temp_arr[2] = $value[1];
 	fputcsv($final_file, $temp_arr);
 }
 fclose($read_file);
