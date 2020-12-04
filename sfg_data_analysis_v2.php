@@ -2,6 +2,7 @@
 $st_file = $argv[1];
 $sfg_file = $argv[2];
 $sfg_email_col = $argv[3];
+$testing = $argv[4];
 
 //rename files to show they've been hashed
 $st_file_hash = str_replace(".csv", "_hashed.csv", $st_file);
@@ -10,6 +11,12 @@ $sfg_file_hash = str_replace(".csv", "_hashed.csv", $sfg_file);
 //concatenate command tot run hash.pl
 $hash_st = "perl hash.pl -i " . $st_file . " -o " . "hashed/" . $st_file_hash;
 $hash_sfg = "perl hash.pl -i " . $sfg_file . " -o " . "hashed/" . $sfg_file_hash;
+
+$test = false;
+
+if($testing != null && $testing = "t") {
+	$test = true;
+}
 
 //execute command to use hash.pl
 echo "\nHashing emails\n";
@@ -105,4 +112,22 @@ foreach($st_count_arr as $line => $value) {
 }
 fclose($read_file);
 fclose($final_file);
+
+//if not a test, remove all directories except the final one and final file
+if(!$test) {
+	//rm -rf directoryname
+	$rm_hashed = "rm -rf hashed";
+	$rm_cut_files = "rm -rf cut_files";
+	$rm_uniq_files = "rm -rf uniq_files";
+	$rm_complete_file = "rm -f " . $complete_file_name;
+
+	echo "Removing test directories\n";
+	exec($rm_hashed);
+	exec($rm_cut_files);
+	exec($rm_uniq_files);
+	exec($rm_complete_file);
+	echo "Test directories removed\n";
+}
+
+echo "All done!\n";
 ?>
