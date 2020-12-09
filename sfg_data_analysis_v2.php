@@ -2,7 +2,8 @@
 $st_file = $argv[1];
 $sfg_file = $argv[2];
 $sfg_email_col = $argv[3];
-$testing = $argv[4];
+$sfg_amount = $argv[4];
+$testing = $argv[5];
 
 //rename files to show they've been hashed
 $st_file_hash = str_replace(".csv", "_hashed.csv", $st_file);
@@ -35,7 +36,7 @@ exec("mkdir cut_files");
 $st_file_hash_cut = str_replace(".csv", "_cut.csv", $st_file_hash);
 $sfg_file_hash_cut = str_replace(".csv", "_cut.csv", $sfg_file_hash);
 $st_cut = "cut -f 2-3 hashed/" . $st_file_hash . " > cut_files/" . $st_file_hash_cut;
-$sfg_cut = "cut -f " . $sfg_email_col . " hashed/" . $sfg_file_hash . " > cut_files/" . $sfg_file_hash_cut;
+$sfg_cut = "cut -f " . $sfg_email_col . "," . $sfg_amount . "-" . $sfg_amount . " hashed/" . $sfg_file_hash . " > cut_files/" . $sfg_file_hash_cut;
 exec($st_cut);
 exec($sfg_cut);
 
@@ -51,7 +52,7 @@ exec("mkdir uniq_files");
 $st_uniq = str_replace(".csv", "_uniq.csv", $st_cut_cleansed);
 $sfg_uniq = str_replace(".csv", "_uniq.csv", $sfg_file_hash_cut);
 $st_uniq_sort = "sort -u -t '\t' -k1 cut_files/" . $st_cut_cleansed . " > " . "uniq_files/" . $st_uniq;
-$sfg_uniq_sort = "sort -u -t '\t' cut_files/" . $sfg_file_hash_cut . " > " . "uniq_files/" . $sfg_uniq;
+$sfg_uniq_sort = "sort -u -t '\t' -k1 cut_files/" . $sfg_file_hash_cut . " > " . "uniq_files/" . $sfg_uniq;
 exec($st_uniq_sort);
 exec($sfg_uniq_sort);
 
@@ -61,9 +62,13 @@ $sfg_file = "uniq_files/" . $sfg_uniq;
 //files with all source codes in ST file
 
 echo "\nFinding matches between ST and SFG files\n";
+/*
+ *to get matches and return fields from both files
+ awk -F"[, ]" 'NR==FNR{a[$1]=$1","$2; next} ($2 in a){print a[$2]","$1}' file1 file2
+ */
 exec("mkdir final_files");
 $complete_file = str_replace(".csv", "_complete.csv", $sfg_uniq);
-$get_matches = "awk -F'\t' 'FILENAME==\"" . $sfg_file . "\"{A[$1]=$1} FILENAME==\"" . $st_file . "\"{if(A[$1]==$1){print}}' $sfg_file $st_file > final_files/" . $complete_file;
+$get_matches = "awk -F'\t' 'FILENAME==\"" . $sfg_file . "\"{A[$1]=$1;A[$3]=$2} FILENAME==\"" . $st_file . "\"{if(A[$1]==$1){print $1\",\"$2\",\"A[$3]}}' $sfg_file $st_file > final_files/" . $complete_file;
 exec($get_matches);
 
 echo "\nFinalizing files and counting source codes\n";
@@ -82,6 +87,7 @@ while($row = fgetcsv($st_file_all_sources, 0, "\t")) {
 }
 
 $st_all_sources = fopen($st_file, "r");
+//$sfg_amount = fopen($sfg_file, "r");
 
 while($read = fgetcsv($st_all_sources, 0, "\t")) {
 	if(array_key_exists($read[1], $st_count_arr)) {
@@ -92,15 +98,18 @@ while($read = fgetcsv($st_all_sources, 0, "\t")) {
 	}
 }
 
-while($line = fgetcsv($read_file, 0, "\t")) {
+while($line = fgetcsv($read_file, 0, ",")) {
 	if(array_key_exists($line[1], $st_count_arr)) {
 		$st_count_arr[$line[1]][1] += 1;
+		$st_count_arr[$line[1]][2] += $line[2];
 	}
 }
 
 $headers[0] = "Source";
 $headers[1] = "Totals by Source in SailThru";
 $headers[2] = "Total Matches in SFG";
+$headers[3] = "Total Dollar Amount";
+$headers[4] = "Average Dollar Amount";
 
 fputcsv($final_file, $headers);
 
@@ -108,6 +117,16 @@ foreach($st_count_arr as $line => $value) {
 	$temp_arr[0] = $line;
 	$temp_arr[1] = $value[0];
 	$temp_arr[2] = $value[1];
+	$temp_arr[3] = $value[2];
+	//compute average dollar amount
+	if($value[1] > 0) {
+		$temp_amt = $value[2] / $value[1];
+	}
+	else {
+		$temp_amt = 0;
+	}
+	
+	$temp_arr[4] = $temp_amt;
 	fputcsv($final_file, $temp_arr);
 }
 fclose($read_file);
