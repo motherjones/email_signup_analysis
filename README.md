@@ -6,6 +6,6 @@
 ### >cd [name of directory] (Press enter)
 ### You can type in >pwd to be sure you are in the correct directory.
 ### Once you are in the directory run the following command (make sure you have the SailThru and SFG files in this directory also):
-### >php sfg_data_analysis.php [Sailthru File] [SFG File] [email column number] [t (option for testing purposes)]
+### >php sfg_data_analysis.php [Sailthru File] [SFG File] [email column number] [dolor amount column] [t (option for testing purposes)]
 ### After the script runs, the results should be in a file inside the final_files directory.
 ## Depends on hash.pl being in the same directory.
