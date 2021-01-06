@@ -68,7 +68,9 @@ echo "\nFinding matches between ST and SFG files\n";
  */
 exec("mkdir final_files");
 $complete_file = str_replace(".csv", "_complete.csv", $sfg_uniq);
-$get_matches = "awk -F'\t' 'FILENAME==\"" . $sfg_file . "\"{A[$1]=$1;A[$3]=$2} FILENAME==\"" . $st_file . "\"{if(A[$1]==$1){print $1\",\"$2\",\"A[$3]}}' $sfg_file $st_file > final_files/" . $complete_file;
+
+$get_matches = "join -t $'\t' -1 1 -2 1 $st_file $sfg_file > final_files/$complete_file";
+
 exec($get_matches);
 
 echo "\nFinalizing files and counting source codes\n";
@@ -98,7 +100,8 @@ while($read = fgetcsv($st_all_sources, 0, "\t")) {
 	}
 }
 
-while($line = fgetcsv($read_file, 0, ",")) {
+while($line = fgetcsv($read_file, 0, "\t")) {
+	echo $line[1] . "\n";
 	if(array_key_exists($line[1], $st_count_arr)) {
 		$st_count_arr[$line[1]][1] += 1;
 		$st_count_arr[$line[1]][2] += $line[2];
@@ -125,7 +128,7 @@ foreach($st_count_arr as $line => $value) {
 	else {
 		$temp_amt = 0;
 	}
-	
+
 	$temp_arr[4] = $temp_amt;
 	fputcsv($final_file, $temp_arr);
 }
