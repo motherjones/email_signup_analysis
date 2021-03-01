@@ -28,11 +28,11 @@ for($i = 0; $i < count($st_csv);$i++) {
 }
 
 for($x = 0; $x < count($sfg_csv); $x++) {
-	if(array_key_exists($sfg_csv[$x]["email"],$amount_arr)) {
-		$amount_arr[$sfg_csv[$x]["email"]] += $sfg_csv[$x]["Transaction Amount"];
+	if(array_key_exists($sfg_csv[$x]["Email Address"],$amount_arr)) {
+		$amount_arr[$sfg_csv[$x]["Email Address"]] += $sfg_csv[$x]["Transaction Amount"];
 	}
 	else {
-		$amount_arr[$sfg_csv[$x]["email"]] = $sfg_csv[$x]["Transaction Amount"];
+		$amount_arr[$sfg_csv[$x]["Email Address"]] = $sfg_csv[$x]["Transaction Amount"];
 	}
 }
 
