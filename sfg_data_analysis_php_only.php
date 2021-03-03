@@ -23,10 +23,12 @@ foreach ($sfg_csv as $l=>$line) {
 $source_arr = array();
 $amount_arr = array();
 
+
+
 for($i = 0; $i < count($st_csv);$i++) {
 	$email_st = "";
 	$email_st = strtolower(trim($st_csv[$i]["Email"]));
-	$source_arr[$st_csv[$i]["Email"]] = $st_csv[$i]["source"];
+	$source_arr[$email_st] = $st_csv[$i]["source"];
 }
 
 for($x = 0; $x < count($sfg_csv); $x++) {
