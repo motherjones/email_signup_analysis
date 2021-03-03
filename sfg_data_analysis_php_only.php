@@ -24,15 +24,20 @@ $source_arr = array();
 $amount_arr = array();
 
 for($i = 0; $i < count($st_csv);$i++) {
+	$email_st = "";
+	$email_st = strtolower(trim($st_csv[$i]["Email"]));
 	$source_arr[$st_csv[$i]["Email"]] = $st_csv[$i]["source"];
 }
 
 for($x = 0; $x < count($sfg_csv); $x++) {
-	if(array_key_exists($sfg_csv[$x]["Email Address"],$amount_arr)) {
-		$amount_arr[$sfg_csv[$x]["Email Address"]] += $sfg_csv[$x]["Transaction Amount"];
+	$email_rr = "";
+	$email_rr = strtolower(trim($sfg_csv[$x]["Email Address"]));
+	//echo $email_rr . " this is to test spacing" . PHP_EOL;
+	if(array_key_exists(trim($sfg_csv[$x]["Email Address"]),$amount_arr)) {
+		$amount_arr[$email_rr] += $sfg_csv[$x]["Transaction Amount"];
 	}
 	else {
-		$amount_arr[$sfg_csv[$x]["Email Address"]] = $sfg_csv[$x]["Transaction Amount"];
+		$amount_arr[$email_rr] = $sfg_csv[$x]["Transaction Amount"];
 	}
 }
 
@@ -55,17 +60,6 @@ foreach($source_arr as $email => $source) {
 		continue;
 	}
 }
-
-/*foreach($amount_arr as $emails => $amounts) {
-
-	if(array_key_exists($emails, $source_arr) && $source_arr[$email] !== "") {
-		$results_arr[$source]["Source Count"]++;
-		$results_arr[$source]["Total Amount"] += $amounts;
-	}
-	else {
-		continue;
-	}
-}*/
 
 $final_file = fopen("final_file.csv", "w+");
 
