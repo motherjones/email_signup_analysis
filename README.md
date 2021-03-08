@@ -1,4 +1,5 @@
 # Email signup analysis script
+### **Update**: For the sfg_data_analysis_php_only.php script, you don't need to put the files name on the command line next to the command. Now, once you execute the script, the script will ask for the names of the files.
 ### Usage (sfg_data_analysis scripts):
 ### Create a directory on your computer, preferably in a place where you can easily access it. Download or copy the contents of the scripts into a text editor and place it in the directory. Make sure you grab both the sfg_data_analysis.php script and hash.pl.
 ### Open the terminal application located in Applications->Utilities->Terminal.app (MacOS). On Windows, right click on the Windows menu icon and select "Run...", then type "cmd" in the field and press OK.
