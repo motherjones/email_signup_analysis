@@ -2,9 +2,9 @@
 //increase PHP memory limit to read in large files
 ini_set('memory_limit','1256M');
 
-//grab file names from command prompt
-$st_file = $argv[1];
-$sfg_file = $argv[2];
+//changed to read file names from prompt instead of in the same line as the command.
+$st_file = trim(readline("Enter the name of the SailThru file: "));
+$sfg_file = trim(readline("Enter the name of the other file: "));
 
 //Turn csv files input into arrays
 $st_csv = array_map("str_getcsv", file($st_file,FILE_SKIP_EMPTY_LINES));
@@ -45,7 +45,7 @@ $found_source = false;
 
 //loop through array keys to find the columns for email and source from SailThru file
 foreach($st_keys as $key => $value) {
-	if(stripos(trim($value),"email") !== false && stripos(trim($value), "opt") === false) {
+	if(stripos(trim($value),"email") !== false && (stripos($value2, "opt") === false && stripos($value2, "preference") === false)) {
 		echo "Found email column in SailThru file: " . $value . PHP_EOL;
 		$st_email = $value;
 		$found_email = true;
@@ -75,12 +75,12 @@ $found_trans_amount = false;
 //loop through array keys to find columns for email and transaction amount in SFG file
 foreach($sfg_keys as $key2 => $value2) {
 	if(stripos($value2, "email") !== false && (stripos($value2, "opt") === false && stripos($value2, "preference") === false)) {
-		echo "Found email column: " . $value2 . PHP_EOL;
+		echo "Found email column in SFG file: " . $value2 . PHP_EOL;
 		$sfg_email = $value2;
 		$found_things = true;
 	}
 	if(stripos($value2, "amount") !== false && stripos($value2, "transaction") !== false) {
-		echo "Found transaction column: " . $value2 . PHP_EOL;
+		echo "Found transaction column in SFG file: " . $value2 . PHP_EOL;
 		$sfg_trans_amnt = $value2;
 		$found_trans_amount = true;
 	}
