@@ -1,6 +1,6 @@
 <?php
 //increase PHP memory limit to read in large files
-ini_set('memory_limit','1256M');
+ini_set('memory_limit','2048M');
 
 //changed to read file names from prompt instead of in the same line as the command.
 $st_file = trim(readline("Enter the name of the SailThru file: "));
@@ -137,6 +137,10 @@ foreach($source_arr as $email => $source) {
 		continue;
 	}
 }
+
+//clear some memory before doing the final operation
+$source_arr = null;
+$amount_arr = null;
 
 //create and open the final csv file for output
 $final_file = fopen("final_file.csv", "w+");
