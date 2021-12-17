@@ -11,5 +11,6 @@
 ### After the script runs, the results should be in a file inside the final_files directory.
 ## Depends on hash.pl being in the same directory.
 ### For get_zips.php, there's no need to input the name of the files in the command lines with the command. All you need to do is execute the command.
-### Usage (get_zips.php): >php get_zips.php (press enter)
+### Usage:
+### ```php get_zips.php (press enter)```
 ### After you press enter, the script will ask for the name of the files.
