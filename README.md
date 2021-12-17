@@ -5,7 +5,7 @@
 ### Open the terminal application located in Applications->Utilities->Terminal.app (MacOS). On Windows, right click on the Windows menu icon and select "Run...", then type "cmd" in the field and press OK.
 ### In the terminal type in the change directory command to get to the directory you created:
 ### ```cd [name of directory] (Press enter)```
-### You can type in >pwd to be sure you are in the correct directory.
+### You can type in ```pwd``` to be sure you are in the correct directory.
 ### Once you are in the directory run the following command (make sure you have the SailThru and SFG files in this directory also):
 ### ```php sfg_data_analysis.php [Sailthru File] [SFG File] [email column number] [dollar amount column] [t (option for testing purposes)]```
 ### After the script runs, the results should be in a file inside the final_files directory.
