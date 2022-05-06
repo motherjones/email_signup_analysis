@@ -1,6 +1,7 @@
 <?php
 //increase PHP memory limit to read in large files
 ini_set('memory_limit','2048M');
+error_reporting(E_ALL ^ E_WARNING);
 
 //changed to read file names from prompt instead of in the same line as the command.
 $st_file = trim(readline("Enter the name of the SailThru file: "));
@@ -45,7 +46,7 @@ $found_source = false;
 
 //loop through array keys to find the columns for email and source from SailThru file
 foreach($st_keys as $key => $value) {
-	if(stripos(trim($value),"email") !== false && (stripos($value2, "opt") === false && stripos($value2, "preference") === false)) {
+	if(stripos(trim($value),"email") !== false && (stripos($value, "opt") === false && stripos($value, "preference") === false)) {
 		echo "Found email column in SailThru file: " . $value . PHP_EOL;
 		$st_email = $value;
 		$found_email = true;
