@@ -17,12 +17,12 @@ $sfg_keys = array_shift($sfg_csv);
 
 foreach ($st_csv as $r=>$row) {
 	$r = trim(strtolower($r));
-  $st_csv[$r] = array_combine($st_keys, $row);
+ 	$st_csv[$r] = array_combine($st_keys, $row);
 }
 
 foreach ($sfg_csv as $l=>$line) {
 	$l = trim(strtolower($l));
-  $sfg_csv[$l] = array_combine($sfg_keys, $line);
+	$sfg_csv[$l] = array_combine($sfg_keys, $line);
 }
 //end csv to arrays
 
@@ -82,7 +82,7 @@ foreach($sfg_keys as $key2 => $value2) {
 	}
 	if(stripos($value2, "amount") !== false && stripos($value2, "transaction") !== false) {
 		echo "Found transaction column in SFG file: " . $value2 . PHP_EOL;
-		$sfg_trans_amnt = $value2;
+		$sfg_trans_amnt = (float) $value2;
 		$found_trans_amount = true;
 	}
 }
