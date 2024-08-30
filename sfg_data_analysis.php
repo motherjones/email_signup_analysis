@@ -1,87 +1,189 @@
 <?php
-$st_file = $argv[1];
-$sfg_file = $argv[2];
-$sfg_email_col = $argv[3];
+//increase PHP memory limit to read in large files
+ini_set('memory_limit','2048M');
+error_reporting(E_ALL ^ E_WARNING);
 
-//rename files to show they've been hashed
-$st_file_hash = str_replace(".csv", "_hashed.csv", $st_file);
-$sfg_file_hash = str_replace(".csv", "_hashed.csv", $sfg_file);
+//changed to read file names from prompt instead of in the same line as the command.
+$st_file = trim(readline("Enter the name of the SailThru file: "));
+$sfg_file = trim(readline("Enter the name of the other file: "));
 
-//concatenate command tot run hash.pl
-$hash_st = "perl hash.pl -i " . $st_file . " -o " . "hashed/" . $st_file_hash;
-$hash_sfg = "perl hash.pl -i " . $sfg_file . " -o " . "hashed/" . $sfg_file_hash;
+//Turn csv files input into arrays
+$st_csv = array_map("str_getcsv", file($st_file,FILE_SKIP_EMPTY_LINES));
+$sfg_csv = array_map("str_getcsv", file($sfg_file,FILE_SKIP_EMPTY_LINES));
 
-//execute command to use hash.pl
-echo "\nHashing emails\n";
-exec("mkdir hashed");
-exec($hash_st);
-exec($hash_sfg);
+//generate key value pairs
+$st_keys = array_shift($st_csv);
+$sfg_keys = array_shift($sfg_csv);
 
-//cut st email & codes column & sfg email column
-echo "\nCutting email columns\n";
-exec("mkdir cut_files");
-$st_file_hash_cut = str_replace(".csv", "_cut.csv", $st_file_hash);
-$sfg_file_hash_cut = str_replace(".csv", "_cut.csv", $sfg_file_hash);
-$st_cut = "cut -f 2-3 hashed/" . $st_file_hash . " > cut_files/" . $st_file_hash_cut;
-$sfg_cut = "cut -f " . $sfg_email_col . " hashed/" . $sfg_file_hash . " > cut_files/" . $sfg_file_hash_cut;
-exec($st_cut);
-exec($sfg_cut);
+foreach ($st_csv as $r=>$row) {
+	$r = trim(strtolower($r));
+ 	$st_csv[$r] = array_combine($st_keys, $row);
+}
 
-//remove rows with no source codes in ST file
-echo "\nRemoving rows with no source codes in ST file\n";
-$st_cut_cleansed = str_replace(".csv", "_cleansed.csv", $st_file_hash_cut);
-$st_cut_clean = "awk -F'\t' '$2!=\"\"'" . " cut_files/" . $st_file_hash_cut . " > cut_files/" . $st_cut_cleansed;
-print $st_cut_clean . "\n";
-exec($st_cut_clean);
+foreach ($sfg_csv as $l=>$line) {
+	$l = trim(strtolower($l));
+	$sfg_csv[$l] = array_combine($sfg_keys, $line);
+	echo($line);
+}
+//end csv to arrays
 
-//remove duplicate emailds
-echo "\nRemoving duplicate emails in both ST and SFG files\n";
-exec("mkdir uniq_files");
-$st_uniq = str_replace(".csv", "_uniq.csv", $st_cut_cleansed);
-$sfg_uniq = str_replace(".csv", "_uniq.csv", $sfg_file_hash_cut);
-$st_uniq_sort = "sort -u -t '\t' -k1 cut_files/" . $st_cut_cleansed . " > " . "uniq_files/" . $st_uniq;
-$sfg_uniq_sort = "sort -u -t '\t' cut_files/" . $sfg_file_hash_cut . " > " . "uniq_files/" . $sfg_uniq;
-exec($st_uniq_sort);
-exec($sfg_uniq_sort);
+//declare the two arrays, one for SailThru file and one for SFG file
+$source_arr = array();
+$amount_arr = array();
 
-//get source code matches from ST to SFG file
-$st_file = "uniq_files/" . $st_uniq;
-$sfg_file = "uniq_files/" . $sfg_uniq;
+//grab array keys to find the columns for operations
+$st_keys = array_keys($st_csv[0]);
+$sfg_keys = array_keys($sfg_csv[0]);
 
-echo "\nFinding matches between ST and SFG files\n";
-exec("mkdir final_files");
-$complete_file = str_replace(".csv", "_complete.csv", $sfg_uniq);
-$get_matches = "awk -F'\t' 'FILENAME==\"" . $sfg_file . "\"{A[$1]=$1} FILENAME==\"" . $st_file . "\"{if(A[$1]==$1){print}}' $sfg_file $st_file > final_files/" . $complete_file;
-exec($get_matches);
+//variables to hold column headers as keys in associative arrays
+$st_email = "";
+$sfg_email = "";
+$st_source = "";
+$sfg_trans_amnt = "";
 
-echo "\nFinalizing files and counting source codes\n";
-$complete_file_name = "final_files/" . $complete_file;
-$read_file = fopen($complete_file_name, "r");
-$rename_final = str_replace(".csv", "_final.csv", $complete_file);
-$final_file_name = "final_files/" . $rename_final;
-$final_file = fopen($final_file_name, "w+");
-$counter_arr = array();
-while($row = fgetcsv($read_file, 0, "\t")) {
-	if(array_key_exists($row[1], $counter_arr)) {
-		$counter_arr[$row[1]]++;
+//failure check vars
+$found_email = false;
+$found_source = false;
+
+//loop through array keys to find the columns for email and source from SailThru file
+foreach($st_keys as $key => $value) {
+	if(stripos(trim($value),"email") !== false && (stripos($value, "opt") === false && stripos($value, "preference") === false)) {
+		echo "Found email column in SailThru file: " . $value . PHP_EOL;
+		$st_email = $value;
+		$found_email = true;
+	}
+	if(stripos($value, "source") !== false) {
+		echo "Found source column in SailThru file: " . $value . PHP_EOL;
+		$st_source = $value;
+		$found_source = true;
+	}
+}
+
+//if either or both field is not found, generate error and exit script
+if($found_email === false || $found_source === false) {
+	if($found_email === false) {
+		echo "Email column not found in SailThru file. Script exiting." . PHP_EOL;
+	}
+	if($found_source === false) {
+		echo "Source column not found in SailThru file. Script exiting." . PHP_EOL;
+	}
+	die();
+}
+
+//failure check vars
+$found_things = false;
+$found_trans_amount = false;
+
+//loop through array keys to find columns for email and transaction amount in SFG file
+foreach($sfg_keys as $key2 => $value2) {
+	if(stripos($value2, "email") !== false && (stripos($value2, "opt") === false && stripos($value2, "preference") === false)) {
+		echo "Found email column in SFG file: " . $value2 . PHP_EOL;
+		$sfg_email = $value2;
+		$found_things = true;
+	}
+	if(stripos($value2, "amount") !== false && stripos($value2, "transaction") !== false) {
+		echo "Found transaction column in SFG file: " . $value2 . PHP_EOL;
+		//$sfg_trans_amnt = (float) $value2;
+		$sfg_trans_amnt = $value2;
+		$found_trans_amount = true;
+	}
+}
+
+//if either or both field is not found, generate an error and exit script
+if($found_things === false || $found_trans_amount === false) {
+	if($found_things === false) {
+		echo "Email column not found in SFG file. Script exiting." . PHP_EOL;
+	}
+	if($found_trans_amount === false) {
+		echo "Transaction amount column not found in SFG file. Script exiting." . PHP_EOL;
+	}
+	die();
+}
+
+//create array with emails and source association
+for($i = 0; $i < count($st_csv);$i++) {
+	$email_st = "";
+	$email_st = strtolower(trim($st_csv[$i][$st_email]));
+	$source_arr[$email_st] = $st_csv[$i][$st_source];
+}
+
+//create array with emails and transaction amount association
+for($x = 0; $x < count($sfg_csv); $x++) {
+	$email_rr = "";
+	$email_rr = strtolower(trim($sfg_csv[$x][$sfg_email]));
+	
+	if(array_key_exists(trim($sfg_csv[$x][$sfg_email]),$amount_arr)) {
+		$amount_arr[$email_rr] += $sfg_csv[$x][$sfg_trans_amnt];
 	}
 	else {
-		$counter_arr[$row[1]] = 1;
-	}
-}
-//get non matching source codes to include
-$non_match = fopen($st_file, "r");
-while($line = fgetcsv($non_match, 0, "\t")) {
-	if(!array_key_exists($line[1], $counter_arr)) {
-		$counter_arr[$line[1]] = 0;
+		$amount_arr[$email_rr] = $sfg_csv[$x][$sfg_trans_amnt];
 	}
 }
 
-foreach($counter_arr as $line => $value) {
-	$temp_arr[0] = $line;
-	$temp_arr[1] = $value;
-	fputcsv($final_file, $temp_arr);
+//define array to hold the results
+$results_arr = array();
+
+//loop through the email/source associative array and look for email matches in the email/transaction amount array
+foreach($source_arr as $email => $source) {
+	if(array_key_exists($source, $results_arr)) {
+		$results_arr[$source]["Total Source"]++;
+	}
+	else {
+		$results_arr[$source]["Total Source"] = 1;
+	}
+
+	//assigning source count and the total amount for the source
+	if(array_key_exists($email, $amount_arr) && ($amount_arr[$email] !== "" && $amount_arr[$email] > 0)) {
+		$results_arr[$source]["Source Count"]++;
+		$results_arr[$source]["Total Amount"] += $amount_arr[$email];
+	}
+	else {
+		continue;
+	}
 }
-fclose($read_file);
+
+//clear some memory before doing the final operation
+$source_arr = null;
+$amount_arr = null;
+
+//create and open the final csv file for output
+$final_file = fopen("final_file.csv", "w+");
+
+//column headers
+$headers[0] = "Source";
+$headers[1] = "Totals by Source in SailThru";
+$headers[2] = "Total Matches in SFG";
+$headers[3] = "Total Dollar Amount";
+$headers[4] = "Average Dollar Amount";
+
+//write the column headers to the csv file
+fputcsv($final_file, $headers);
+
+echo "working.";
+
+//loop through the results array and write the information to the file
+foreach($results_arr as $source => $values) {
+	$items[0] = $source;
+	$items[1] = $values["Total Source"];
+	if($values["Source Count"] != "" && $values["Source Count"] > 0) {
+		$items[2] = $values["Source Count"];
+		$items[3] = $values["Total Amount"];
+		//calculate average amount
+		if($values["Source Count"] > 0) {
+			$items[4] = round($values["Total Amount"] / $values["Source Count"], 2);
+		}
+	}
+	else {
+		$items[2] = 0;
+		$items[3] = "N/A";
+		$items[4] = "N/A";
+	}
+
+	fputcsv($final_file, $items);
+	echo ".";
+}
+
+echo PHP_EOL . "Done" . PHP_EOL;
+
 fclose($final_file);
 ?>
