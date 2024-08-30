@@ -23,6 +23,7 @@ foreach ($st_csv as $r=>$row) {
 foreach ($sfg_csv as $l=>$line) {
 	$l = trim(strtolower($l));
 	$sfg_csv[$l] = array_combine($sfg_keys, $line);
+	echo($line);
 }
 //end csv to arrays
 
@@ -82,7 +83,8 @@ foreach($sfg_keys as $key2 => $value2) {
 	}
 	if(stripos($value2, "amount") !== false && stripos($value2, "transaction") !== false) {
 		echo "Found transaction column in SFG file: " . $value2 . PHP_EOL;
-		$sfg_trans_amnt = (float) $value2;
+		//$sfg_trans_amnt = (float) $value2;
+		$sfg_trans_amnt = $value2;
 		$found_trans_amount = true;
 	}
 }
@@ -109,6 +111,7 @@ for($i = 0; $i < count($st_csv);$i++) {
 for($x = 0; $x < count($sfg_csv); $x++) {
 	$email_rr = "";
 	$email_rr = strtolower(trim($sfg_csv[$x][$sfg_email]));
+	
 	if(array_key_exists(trim($sfg_csv[$x][$sfg_email]),$amount_arr)) {
 		$amount_arr[$email_rr] += $sfg_csv[$x][$sfg_trans_amnt];
 	}
